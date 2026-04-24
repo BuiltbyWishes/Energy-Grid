@@ -255,6 +255,57 @@ html, body, #root {
   100% { transform: scale(2.5); opacity: 0;   }
 }
 
+/* ── Map tooltip ──────────────────────────────────────────────── */
+.map-tooltip {
+  position: fixed;
+  z-index: 500;
+  background: var(--bg-card);
+  border: 1px solid var(--border-bright);
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-width: 170px;
+  pointer-events: none;
+  backdrop-filter: blur(16px);
+  font-family: var(--font-mono);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5), var(--glow-blue);
+}
+
+.tt-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.tt-row span:last-child {
+  color: var(--text);
+  text-align: right;
+}
+
+/* ── Flow line animation ───────────────────────────────────────── */
+.flow-line {
+  stroke-dasharray: 6 4;
+  animation: dash-flow 1.5s linear infinite;
+}
+
+/* ── Plant pulse ring ─────────────────────────────────────────── */
+.plant-ring {
+  animation: ring-expand 2.8s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 /* ── Scrollbar ────────────────────────────────────────────────── */
 ::-webkit-scrollbar             { width: 4px; }
 ::-webkit-scrollbar-track       { background: transparent; }

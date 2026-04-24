@@ -57,8 +57,8 @@ export async function fetchRegionDemand() {
   for (const row of data) {
     if (!result[row.respondent]) result[row.respondent] = { period: row.period };
     const entry = result[row.respondent];
-    if (row.type === 'D'  && entry.demand  == null) entry.demand  = row.value;
-    if (row.type === 'NG' && entry.netGen  == null) entry.netGen  = row.value;
+    if (row.type === 'D'  && entry.demand  == null) entry.demand  = +row.value;
+    if (row.type === 'NG' && entry.netGen  == null) entry.netGen  = +row.value;
   }
   return result;
 }
@@ -81,7 +81,7 @@ export async function fetchFuelMix() {
   const latest = data[0].period;
   return data
     .filter(r => r.period === latest && (r.value ?? 0) > 0)
-    .map(r => ({ fueltype: r.fueltype, name: r['type-name'] ?? r.fueltype, value: r.value }));
+    .map(r => ({ fueltype: r.fueltype, name: r['type-name'] ?? r.fueltype, value: +r.value }));
 }
 
 // Monthly plant-level generation — augments seed data with real output MW
@@ -110,7 +110,7 @@ export async function fetchPlantGeneration(plants) {
   for (const row of data) {
     const pid  = String(row.plantid);
     const per  = row.period ?? '';
-    const mwh  = row.generation ?? 0;
+    const mwh  = +(row.generation ?? 0);
     if (!byPlant[pid]) byPlant[pid] = {};
     byPlant[pid][per] = (byPlant[pid][per] ?? 0) + mwh;
   }

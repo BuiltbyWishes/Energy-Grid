@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { fetchRegionDemand, fetchFuelMix, fetchPlantGeneration } from './api/eia'
 import { PLANTS } from './data/plants'
 import { DATA_CENTERS } from './data/dataCenters'
+import GridMap from './components/GridMap'
 import './index.css'
 
 const REFRESH_MS = 5 * 60 * 1000;
@@ -133,14 +134,7 @@ export default function App() {
       {/* ── Main ── */}
       <div className="main-layout">
         <div className="map-area">
-          {/* GridMap mounts here in Session 2 */}
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            height: '100%', color: 'var(--text-dim)',
-            fontFamily: 'var(--font-mono)', fontSize: 12,
-          }}>
-            Map — Session 2
-          </div>
+          <GridMap plants={plants} />
         </div>
 
         <aside className="sidebar">
