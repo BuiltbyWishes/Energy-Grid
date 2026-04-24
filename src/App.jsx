@@ -3,6 +3,10 @@ import { fetchRegionDemand, fetchFuelMix, fetchPlantGeneration } from './api/eia
 import { PLANTS } from './data/plants'
 import { DATA_CENTERS } from './data/dataCenters'
 import GridMap from './components/GridMap'
+import FuelMixPanel from './components/FuelMixPanel'
+import DcRankings from './components/DcRankings'
+import RegionPanel from './components/RegionPanel'
+import EcoPanel from './components/EcoPanel'
 import './index.css'
 
 const REFRESH_MS = 5 * 60 * 1000;
@@ -138,10 +142,10 @@ export default function App() {
         </div>
 
         <aside className="sidebar">
-          {/* Sidebar panels mount here in Session 3 */}
-          <div style={{ padding: 16, color: 'var(--text-dim)', fontFamily: 'var(--font-mono)', fontSize: 12 }}>
-            Panels — Session 3
-          </div>
+          <FuelMixPanel fuelMix={fuelMix} />
+          <RegionPanel regionData={regionData} />
+          <DcRankings />
+          <EcoPanel plants={plants} />
         </aside>
       </div>
     </div>
