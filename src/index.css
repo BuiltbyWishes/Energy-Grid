@@ -379,13 +379,13 @@ html, body, #root {
     transform: translateY(0);
   }
 
-  /* DATA toggle button */
+  /* DATA toggle button — always above sidebar */
   .mobile-data-btn {
     display: block;
     position: absolute;
-    bottom: 72px;
+    bottom: 20px;
     right: 16px;
-    z-index: 150;
+    z-index: 300;
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 500;
@@ -393,22 +393,32 @@ html, body, #root {
     padding: 8px 18px;
     border-radius: 999px;
     border: 1px solid var(--teal);
-    background: rgba(14, 234, 220, 0.12);
+    background: var(--bg-card);
     color: var(--teal);
     cursor: pointer;
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
     box-shadow: var(--glow-teal);
   }
 
-  /* Filter bar: shrink on mobile */
+  /* Filter bar: scrollable strip at bottom */
   .filter-bar {
-    bottom: 72px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 4px 6px;
-    gap: 4px;
+    bottom: 20px;
+    left: 0;
+    right: 60px;
+    transform: none;
+    border-radius: 0;
+    border: none;
+    border-top: 1px solid var(--border);
+    background: var(--bg-card);
+    padding: 6px 10px;
+    gap: 6px;
+    overflow-x: auto;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  .filter-btn { padding: 4px 10px; font-size: 10px; }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-btn { padding: 5px 12px; font-size: 10px; flex-shrink: 0; }
 
   /* Tooltip: keep it visible */
   .map-tooltip { font-size: 10px; min-width: 140px; }
