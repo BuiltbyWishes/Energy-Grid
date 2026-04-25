@@ -286,6 +286,8 @@ export default function GridMap({
                   style={{ cursor: 'pointer' }}
                 />
                 <circle r={1.8} fill={color} />
+                {/* large transparent touch target */}
+                <circle r={22} fill="transparent" style={{ cursor: 'pointer' }} />
               </g>
             </Marker>
           )
@@ -323,6 +325,8 @@ export default function GridMap({
                   style={{ cursor: 'pointer' }}
                 />
                 <circle r={2.5} fill={color} />
+                {/* large transparent touch target */}
+                <circle r={24} fill="transparent" style={{ cursor: 'pointer' }} />
               </g>
             </Marker>
           )
@@ -343,6 +347,8 @@ export default function GridMap({
               onClick={() => onRegionClick?.(r)}
               style={{ cursor: 'pointer' }}
             >
+              {/* large transparent touch target */}
+              <circle r={sz + 20} fill="transparent" style={{ cursor: 'pointer' }} />
               {/* Outer halo */}
               <circle
                 r={sz + 10}

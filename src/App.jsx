@@ -72,23 +72,28 @@ export default function App() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  const isMobile = () => window.innerWidth <= 768
+
   // ── Click handlers ────────────────────────────────────────────
   const handleRegionClick = useCallback(region => {
     setSelected(prev =>
       prev?.type === 'region' && prev.data.id === region.id ? null : { type: 'region', data: region }
     );
+    if (isMobile()) setSidebarOpen(true)
   }, []);
 
   const handlePlantClick = useCallback(plant => {
     setSelected(prev =>
       prev?.type === 'plant' && prev.data.id === plant.id ? null : { type: 'plant', data: plant }
     );
+    if (isMobile()) setSidebarOpen(true)
   }, []);
 
   const handleDcClick = useCallback(dc => {
     setSelected(prev =>
       prev?.type === 'dc' && prev.data.id === dc.id ? null : { type: 'dc', data: dc }
     );
+    if (isMobile()) setSidebarOpen(true)
   }, []);
 
   // ── Derived stats ──────────────────────────────────────────────
