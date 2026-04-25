@@ -44,11 +44,26 @@ src/
 - `DcRankings` — all 20 DCs ranked by MW draw, load-tier color
 - `EcoPanel` — plants sorted by eco_score, SVG arc gauge, grade badge
 
-## Next: Session 4 — Interactions
-- Click region marker → slide-in detail panel (24h Recharts demand chart, fuel mix)
-- Click plant/DC → highlight connected network on map
-- Hover tooltip on flow lines showing MW transfer
-- Filter toggle: show/hide plants by fuel type (already done in Session 2)
+### Session 4 — Interactions
+- Region diamond markers on map (REGIONS lat/lng, diamond polygon, demand GW label)
+- Click region → sidebar swaps to `DetailPanel` (Recharts 24h AreaChart, demand/netGen stats)
+- Click plant or DC → network highlighting: selected + connected nodes stay bright, others dim to 0.12 opacity
+- Flow line hover tooltip showing plant→DC name and MW draw
+- ESC key and click-same-to-toggle both clear selection
+- `style` prop on react-simple-maps `<Marker>` is NOT forwarded — use `<g opacity={...}>` inside instead
+
+## Architecture additions (Session 4)
+```
+components/
+  DetailPanel.jsx  — region detail with Recharts AreaChart (fetches fetchRegionTimeseries on mount)
+```
+`App.jsx` now manages `selected: { type: 'region'|'plant'|'dc', data }` state.
+`GridMap` accepts `regionData`, `selected`, `onRegionClick`, `onPlantClick`, `onDcClick`.
+
+## Next: Session 5 — Polish
+- Animate marker pulse on load
+- Mobile responsive layout (map full screen, panels as drawers)
+- Error states, loading skeletons, final QA
 
 ## launch.json Note
 Must use `cmd /c "cd energy-grid && npm run dev"` — preview tool runs from parent dir.

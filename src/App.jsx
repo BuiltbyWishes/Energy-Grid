@@ -7,6 +7,7 @@ import FuelMixPanel from './components/FuelMixPanel'
 import DcRankings from './components/DcRankings'
 import RegionPanel from './components/RegionPanel'
 import EcoPanel from './components/EcoPanel'
+import DetailPanel from './components/DetailPanel'
 import './index.css'
 
 const REFRESH_MS = 5 * 60 * 1000;
@@ -31,6 +32,7 @@ export default function App() {
   const [regionData, setRegionData] = useState({});
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
+  const [selected, setSelected]     = useState(null); // { type: 'region'|'plant'|'dc', data }
   const clock                       = useClock();
 
   const load = useCallback(async () => {
@@ -42,15 +44,12 @@ export default function App() {
       ]);
       setRegionData(rd);
       setFuelMix(fm);
-
-      // Merge live generation data into plant objects
       setPlants(PLANTS.map(p => {
         const live = pg[String(p.eia_id)];
         return live
           ? { ...p, current_output_mw: live.current_output_mw, live_period: live.period }
           : p;
       }));
-
       setError(null);
     } catch (e) {
       setError(e.message);
@@ -65,20 +64,46 @@ export default function App() {
     return () => clearInterval(t);
   }, [load]);
 
+  // Dismiss on Escape
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') setSelected(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // ── Click handlers ────────────────────────────────────────────
+  const handleRegionClick = useCallback(region => {
+    setSelected(prev =>
+      prev?.type === 'region' && prev.data.id === region.id ? null : { type: 'region', data: region }
+    );
+  }, []);
+
+  const handlePlantClick = useCallback(plant => {
+    setSelected(prev =>
+      prev?.type === 'plant' && prev.data.id === plant.id ? null : { type: 'plant', data: plant }
+    );
+  }, []);
+
+  const handleDcClick = useCallback(dc => {
+    setSelected(prev =>
+      prev?.type === 'dc' && prev.data.id === dc.id ? null : { type: 'dc', data: dc }
+    );
+  }, []);
+
   // ── Derived stats ──────────────────────────────────────────────
-  const totalDemand     = Object.values(regionData).reduce((s, r) => s + (r.demand ?? 0), 0);
-  const totalNetGen     = Object.values(regionData).reduce((s, r) => s + (r.netGen  ?? 0), 0);
-  const totalDcDraw     = DATA_CENTERS.reduce((s, dc) => s + dc.energy_consumption_mw, 0);
-  const dcPctOfGrid     = totalDemand > 0 ? ((totalDcDraw / totalDemand) * 100).toFixed(1) : '—';
+  const totalDemand = Object.values(regionData).reduce((s, r) => s + (r.demand ?? 0), 0);
+  const totalNetGen = Object.values(regionData).reduce((s, r) => s + (r.netGen  ?? 0), 0);
+  const totalDcDraw = DATA_CENTERS.reduce((s, dc) => s + dc.energy_consumption_mw, 0);
+  const dcPctOfGrid = totalDemand > 0 ? ((totalDcDraw / totalDemand) * 100).toFixed(1) : '—';
 
-  const renewables      = fuelMix.filter(f => ['SUN','WND','WAT'].includes(f.fueltype))
-                            .reduce((s, f) => s + f.value, 0);
-  const totalGen        = fuelMix.reduce((s, f) => s + f.value, 0);
-  const renewPct        = totalGen > 0 ? Math.round((renewables / totalGen) * 100) : null;
+  const renewables  = fuelMix.filter(f => ['SUN','WND','WAT'].includes(f.fueltype))
+                        .reduce((s, f) => s + f.value, 0);
+  const totalGen    = fuelMix.reduce((s, f) => s + f.value, 0);
+  const renewPct    = totalGen > 0 ? Math.round((renewables / totalGen) * 100) : null;
 
-  const avgEco          = Math.round(plants.reduce((s, p) => s + p.eco_score, 0) / plants.length);
-  const cleanest        = [...plants].sort((a, b) => b.eco_score - a.eco_score)[0];
-  const dirtiest        = [...plants].sort((a, b) => a.eco_score - b.eco_score)[0];
+  const avgEco      = Math.round(plants.reduce((s, p) => s + p.eco_score, 0) / plants.length);
+  const cleanest    = [...plants].sort((a, b) => b.eco_score - a.eco_score)[0];
+  const dirtiest    = [...plants].sort((a, b) => a.eco_score - b.eco_score)[0];
 
   if (loading) {
     return (
@@ -138,14 +163,31 @@ export default function App() {
       {/* ── Main ── */}
       <div className="main-layout">
         <div className="map-area">
-          <GridMap plants={plants} />
+          <GridMap
+            plants={plants}
+            regionData={regionData}
+            selected={selected}
+            onRegionClick={handleRegionClick}
+            onPlantClick={handlePlantClick}
+            onDcClick={handleDcClick}
+          />
         </div>
 
         <aside className="sidebar">
-          <FuelMixPanel fuelMix={fuelMix} />
-          <RegionPanel regionData={regionData} />
-          <DcRankings />
-          <EcoPanel plants={plants} />
+          {selected?.type === 'region' ? (
+            <DetailPanel
+              region={selected.data}
+              regionData={regionData}
+              onClose={() => setSelected(null)}
+            />
+          ) : (
+            <>
+              <FuelMixPanel fuelMix={fuelMix} />
+              <RegionPanel regionData={regionData} />
+              <DcRankings />
+              <EcoPanel plants={plants} />
+            </>
+          )}
         </aside>
       </div>
     </div>
