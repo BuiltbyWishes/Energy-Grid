@@ -33,6 +33,7 @@ export default function App() {
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
   const [selected, setSelected]     = useState(null); // { type: 'region'|'plant'|'dc', data }
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const clock                       = useClock();
 
   const load = useCallback(async () => {
@@ -171,14 +172,20 @@ export default function App() {
             onPlantClick={handlePlantClick}
             onDcClick={handleDcClick}
           />
+          <button
+            className="mobile-data-btn"
+            onClick={() => setSidebarOpen(o => !o)}
+          >
+            {sidebarOpen ? '✕ CLOSE' : '⚡ DATA'}
+          </button>
         </div>
 
-        <aside className="sidebar">
+        <aside className={`sidebar${sidebarOpen ? ' sidebar--open' : ''}`}>
           {selected?.type === 'region' ? (
             <DetailPanel
               region={selected.data}
               regionData={regionData}
-              onClose={() => setSelected(null)}
+              onClose={() => { setSelected(null); setSidebarOpen(false); }}
             />
           ) : (
             <>

@@ -340,3 +340,76 @@ html, body, #root {
 ::-webkit-scrollbar-track       { background: transparent; }
 ::-webkit-scrollbar-thumb       { background: var(--border); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+/* ── Mobile DATA toggle button ────────────────────────────────── */
+.mobile-data-btn {
+  display: none;
+}
+
+/* ── Mobile layout ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Header: hide less important stats */
+  .header { gap: 12px; padding: 0 14px; height: 48px; }
+  .header-stats { gap: 14px; }
+  .header-stat:nth-child(n+4) { display: none; }
+  .header-clock { display: none; }
+  .header-stat-value { font-size: 11px; }
+  .header-stat-label { font-size: 8px; }
+
+  /* Map takes full height, sidebar hidden by default */
+  .main-layout { position: relative; }
+  .map-area { height: 100%; }
+
+  .sidebar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 65vh;
+    border-left: none;
+    border-top: 1px solid var(--border-bright);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    z-index: 200;
+  }
+
+  .sidebar--open {
+    transform: translateY(0);
+  }
+
+  /* DATA toggle button */
+  .mobile-data-btn {
+    display: block;
+    position: absolute;
+    bottom: 72px;
+    right: 16px;
+    z-index: 150;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    border: 1px solid var(--teal);
+    background: rgba(14, 234, 220, 0.12);
+    color: var(--teal);
+    cursor: pointer;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--glow-teal);
+  }
+
+  /* Filter bar: shrink on mobile */
+  .filter-bar {
+    bottom: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 6px;
+    gap: 4px;
+  }
+  .filter-btn { padding: 4px 10px; font-size: 10px; }
+
+  /* Tooltip: keep it visible */
+  .map-tooltip { font-size: 10px; min-width: 140px; }
+}
