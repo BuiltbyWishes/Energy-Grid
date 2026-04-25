@@ -356,17 +356,28 @@ html, body, #root {
   .header-stat-value { font-size: 11px; }
   .header-stat-label { font-size: 8px; }
 
-  /* Map takes full height, sidebar hidden by default */
+  /* Map: scrollable, zoomed in so markers are big enough to tap */
   .main-layout { position: relative; }
-  .map-area { height: 100%; }
+  .map-area {
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .map-area svg {
+    width: 720px !important;
+    min-width: 720px;
+    height: auto !important;
+  }
 
+  /* Sidebar: compact bottom sheet, only 40% of screen */
   .sidebar {
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
-    height: 65vh;
+    height: 42vh;
     border-left: none;
     border-top: 1px solid var(--border-bright);
     border-radius: 16px 16px 0 0;
