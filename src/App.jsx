@@ -166,6 +166,14 @@ export default function App() {
         </span>
       </header>
 
+      {/* DATA toggle — outside map-area so position:fixed works on mobile */}
+      <button
+        className="mobile-data-btn"
+        onClick={() => setSidebarOpen(o => !o)}
+      >
+        {sidebarOpen ? '✕ CLOSE' : '⚡ DATA'}
+      </button>
+
       {/* ── Main ── */}
       <div className="main-layout">
         <div className="map-area">
@@ -177,12 +185,6 @@ export default function App() {
             onPlantClick={handlePlantClick}
             onDcClick={handleDcClick}
           />
-          <button
-            className="mobile-data-btn"
-            onClick={() => setSidebarOpen(o => !o)}
-          >
-            {sidebarOpen ? '✕ CLOSE' : '⚡ DATA'}
-          </button>
         </div>
 
         <aside className={`sidebar${sidebarOpen ? ' sidebar--open' : ''}`}>
