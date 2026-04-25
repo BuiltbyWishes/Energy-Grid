@@ -411,13 +411,13 @@ html, body, #root {
     box-shadow: var(--glow-teal);
   }
 
-  /* Filter bar: fixed vertical column on the left, always visible */
+  /* Filter bar: fixed vertical column on the right, always visible */
   .filter-bar {
     position: fixed;
     bottom: auto;
     top: 50%;
-    left: 8px;
-    right: auto;
+    left: auto;
+    right: 8px;
     transform: translateY(-50%);
     flex-direction: column;
     border-radius: 12px;
