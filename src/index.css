@@ -390,18 +390,18 @@ html, body, #root {
     transform: translateY(0);
   }
 
-  /* DATA toggle button — always above sidebar */
+  /* DATA toggle button — fixed to viewport, always tappable */
   .mobile-data-btn {
     display: block;
-    position: absolute;
-    bottom: 20px;
+    position: fixed;
+    bottom: 24px;
     right: 16px;
-    z-index: 300;
+    z-index: 500;
     font-family: var(--font-mono);
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 1px;
-    padding: 8px 18px;
+    padding: 9px 20px;
     border-radius: 999px;
     border: 1px solid var(--teal);
     background: var(--bg-card);
@@ -411,8 +411,9 @@ html, body, #root {
     box-shadow: var(--glow-teal);
   }
 
-  /* Filter bar: vertical column on the left side */
+  /* Filter bar: fixed vertical column on the left, always visible */
   .filter-bar {
+    position: fixed;
     bottom: auto;
     top: 50%;
     left: 8px;
@@ -424,8 +425,12 @@ html, body, #root {
     gap: 4px;
     overflow-x: visible;
     overflow-y: auto;
+    z-index: 500;
   }
   .filter-btn { padding: 6px 10px; font-size: 9px; letter-spacing: 0; }
+
+  /* Hide DetailPanel's own close btn on mobile — DATA button handles it */
+  .detail-panel .close-btn { display: none; }
 
   /* Tooltip: keep it visible */
   .map-tooltip { font-size: 10px; min-width: 140px; }
