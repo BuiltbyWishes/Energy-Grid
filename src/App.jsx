@@ -8,6 +8,7 @@ import DcRankings from './components/DcRankings'
 import RegionPanel from './components/RegionPanel'
 import EcoPanel from './components/EcoPanel'
 import DetailPanel from './components/DetailPanel'
+import { PlantDetailPanel, DcDetailPanel } from './components/SelectionPanel'
 import './index.css'
 
 const REFRESH_MS = 5 * 60 * 1000;
@@ -192,6 +193,16 @@ export default function App() {
             <DetailPanel
               region={selected.data}
               regionData={regionData}
+              onClose={() => { setSelected(null); setSidebarOpen(false); }}
+            />
+          ) : selected?.type === 'plant' ? (
+            <PlantDetailPanel
+              plant={selected.data}
+              onClose={() => { setSelected(null); setSidebarOpen(false); }}
+            />
+          ) : selected?.type === 'dc' ? (
+            <DcDetailPanel
+              dc={selected.data}
               onClose={() => { setSelected(null); setSidebarOpen(false); }}
             />
           ) : (
