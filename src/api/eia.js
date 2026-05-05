@@ -43,11 +43,11 @@ export async function fetchRegionDemand() {
     ['data[0]', 'value'],
     ['facets[type][]', 'D'],
     ['facets[type][]', 'NG'],
-    ['start', hoursAgo(3)],
+    ['start', hoursAgo(24)],   // wide window — NG can lag 4–8 h behind D
     ['end', nowHour()],
     ['sort[0][column]', 'period'],
     ['sort[0][direction]', 'desc'],
-    ['length', '100'],
+    ['length', '200'],          // 7 regions × 2 types × up to ~14 hours
   ];
   for (const r of REGIONS) params.push(['facets[respondent][]', r.id]);
 
@@ -70,11 +70,11 @@ export async function fetchFuelMix() {
     ['frequency', 'hourly'],
     ['data[0]', 'value'],
     ['facets[respondent][]', 'US48'],
-    ['start', hoursAgo(3)],
+    ['start', hoursAgo(24)],   // wide window to cover EIA reporting lag
     ['end', nowHour()],
     ['sort[0][column]', 'period'],
     ['sort[0][direction]', 'desc'],
-    ['length', '20'],
+    ['length', '50'],           // ~14 fuel types × a few hours buffer
   ]);
 
   if (!data.length) return [];
@@ -136,7 +136,7 @@ export async function fetchRegionTimeseries(respondent) {
     ['facets[respondent][]', respondent],
     ['facets[type][]', 'D'],
     ['facets[type][]', 'NG'],
-    ['start', hoursAgo(24)],
+    ['start', hoursAgo(32)],   // 32h to guarantee 24h of actual data despite lag
     ['end', nowHour()],
     ['sort[0][column]', 'period'],
     ['sort[0][direction]', 'asc'],
