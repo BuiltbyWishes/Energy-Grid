@@ -129,7 +129,7 @@ export default function App() {
     <div className="app">
       {/* ── Header ── */}
       <header className="header">
-        <span className="header-logo">⚡ Energy Grid</span>
+        <span className="header-logo">Energy Grid</span>
 
         <div className="header-stats">
           <div className="header-stat">
