@@ -167,13 +167,15 @@ export default function App() {
         </span>
       </header>
 
-      {/* DATA toggle — outside map-area so position:fixed works on mobile */}
-      <button
-        className="mobile-data-btn"
-        onClick={() => setSidebarOpen(o => !o)}
-      >
-        {sidebarOpen ? '✕ CLOSE' : '⚡ DATA'}
-      </button>
+      {/* DATA toggle — hidden when plant/DC panel is open (they have their own close btn) */}
+      {!(sidebarOpen && (selected?.type === 'plant' || selected?.type === 'dc')) && (
+        <button
+          className="mobile-data-btn"
+          onClick={() => setSidebarOpen(o => !o)}
+        >
+          {sidebarOpen ? '✕ CLOSE' : '⚡ DATA'}
+        </button>
+      )}
 
       {/* ── Main ── */}
       <div className="main-layout">
