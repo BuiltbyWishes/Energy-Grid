@@ -273,7 +273,7 @@ export default function GridMap({
               coordinates={[dc.lng, dc.lat]}
               onMouseEnter={e => showTip(e, 'dc', dc)}
               onMouseLeave={hideTip}
-              onClick={() => onDcClick?.(dc)}
+              onClick={() => { hideTip(); onDcClick?.(dc) }}
             >
               <g opacity={dimmed ? 0.12 : 1} style={{ transition: 'opacity 0.25s' }}>
                 <circle r={r + 6} fill={`${color}${isHl ? '20' : '12'}`} />
@@ -305,7 +305,7 @@ export default function GridMap({
               coordinates={[plant.lng, plant.lat]}
               onMouseEnter={e => showTip(e, 'plant', plant)}
               onMouseLeave={hideTip}
-              onClick={() => onPlantClick?.(plant)}
+              onClick={() => { hideTip(); onPlantClick?.(plant) }}
             >
               <g opacity={dimmed ? 0.12 : 1} style={{ transition: 'opacity 0.25s' }}>
                 <circle

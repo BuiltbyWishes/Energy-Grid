@@ -24,11 +24,15 @@ function StatBox({ label, value, color }) {
   )
 }
 
+// Sticky header so ✕ CLOSE is always visible when content scrolls
 function PanelHeader({ label, name, color, onClose }) {
   return (
     <div style={{
+      position: 'sticky', top: 0, zIndex: 10,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '14px 16px 10px', borderBottom: '1px solid var(--border)', flexShrink: 0,
+      padding: '14px 16px 10px',
+      borderBottom: '1px solid var(--border)',
+      background: 'var(--bg-card)',
     }}>
       <div>
         <div style={{
@@ -88,7 +92,9 @@ export function PlantDetailPanel({ plant, onClose }) {
                  : 'var(--red)'
 
   return (
-    <div className="detail-panel panel-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    // Use 'selection-panel' — NOT 'detail-panel' — so the mobile CSS rule
+    // that hides .detail-panel .close-btn does not affect this panel.
+    <div className="selection-panel panel-in">
       <PanelHeader
         label="Power Plant"
         name={`${icon}  ${plant.name}`}
@@ -99,7 +105,7 @@ export function PlantDetailPanel({ plant, onClose }) {
       {/* Stats grid */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
-        borderBottom: '1px solid var(--border)', flexShrink: 0,
+        borderBottom: '1px solid var(--border)',
       }}>
         <div style={{ borderRight: '1px solid var(--border)' }}>
           <StatBox label="Capacity" value={`${plant.capacity_mw.toLocaleString()} MW`} color={color} />
@@ -119,10 +125,10 @@ export function PlantDetailPanel({ plant, onClose }) {
       {/* Details */}
       <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
         {[
-          ['Type',     plant.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()), color],
-          ['State',    `${plant.state} · ${plant.region}`, 'var(--text-muted)'],
-          ['Grade',    `${plant.eco_grade} — ${plant.eco_score >= 80 ? 'Clean' : plant.eco_score >= 50 ? 'Moderate' : 'High Emissions'}`, ecoColor],
-          ['Carbon',   `${plant.eco_factors.carbon_intensity_gco2_kwh} gCO₂/kWh`, ecoColor],
+          ['Type',   plant.type.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase()), color],
+          ['State',  `${plant.state} · ${plant.region}`, 'var(--text-muted)'],
+          ['Grade',  `${plant.eco_grade} — ${plant.eco_score >= 80 ? 'Clean' : plant.eco_score >= 50 ? 'Moderate' : 'High Emissions'}`, ecoColor],
+          ['Carbon', `${plant.eco_factors.carbon_intensity_gco2_kwh} gCO₂/kWh`, ecoColor],
         ].map(([lbl, val, clr]) => (
           <div key={lbl} style={{
             display: 'flex', justifyContent: 'space-between',
@@ -141,14 +147,6 @@ export function PlantDetailPanel({ plant, onClose }) {
         getColor={dc => flowColor(dc.energy_consumption_mw)}
         getName={dc => `${dc.energy_consumption_mw} MW`}
       />
-
-      <div style={{
-        padding: '12px 16px', marginTop: 'auto',
-        fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-dim)',
-        textTransform: 'uppercase', letterSpacing: 0.8,
-      }}>
-        ESC or tap ✕ to close
-      </div>
     </div>
   )
 }
@@ -174,11 +172,10 @@ export function DcDetailPanel({ dc, onClose }) {
                   : dc.yoy_growth_percent >= 20 ? 'var(--amber)'
                   : 'var(--green)'
 
-  // Find connected plants from source_plant_ids
   const connectedPlants = (dc.source_plant_ids ?? []).map(id => PLT_MAP[id]).filter(Boolean)
 
   return (
-    <div className="detail-panel panel-in" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="selection-panel panel-in">
       <PanelHeader
         label="Data Center"
         name={dc.name}
@@ -189,7 +186,7 @@ export function DcDetailPanel({ dc, onClose }) {
       {/* Stats grid */}
       <div style={{
         display: 'grid', gridTemplateColumns: '1fr 1fr 1fr',
-        borderBottom: '1px solid var(--border)', flexShrink: 0,
+        borderBottom: '1px solid var(--border)',
       }}>
         <div style={{ borderRight: '1px solid var(--border)' }}>
           <StatBox label="Draw" value={`${dc.energy_consumption_mw} MW`} color={color} />
@@ -205,10 +202,10 @@ export function DcDetailPanel({ dc, onClose }) {
       {/* Details */}
       <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)' }}>
         {[
-          ['Operator',  dc.operator,                         opColor],
-          ['Location',  `${dc.city}, ${dc.state}`,           'var(--text-muted)'],
-          ['PUE Ratio', `${dc.pue_ratio}×`,                  dc.pue_ratio <= 1.15 ? 'var(--green)' : dc.pue_ratio <= 1.30 ? 'var(--yellow)' : 'var(--red)'],
-          ['Throughput', `${dc.data_output_tbps} Tbps`,      'var(--teal)'],
+          ['Operator',   dc.operator,                    opColor],
+          ['Location',   `${dc.city}, ${dc.state}`,      'var(--text-muted)'],
+          ['PUE Ratio',  `${dc.pue_ratio}×`,             dc.pue_ratio <= 1.15 ? 'var(--green)' : dc.pue_ratio <= 1.30 ? 'var(--yellow)' : 'var(--red)'],
+          ['Throughput', `${dc.data_output_tbps} Tbps`,  'var(--teal)'],
         ].map(([lbl, val, clr]) => (
           <div key={lbl} style={{
             display: 'flex', justifyContent: 'space-between',
@@ -227,14 +224,6 @@ export function DcDetailPanel({ dc, onClose }) {
         getColor={p => PLANT_COLORS[p.type]}
         getName={p => p.type.replace('_', ' ')}
       />
-
-      <div style={{
-        padding: '12px 16px', marginTop: 'auto',
-        fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-dim)',
-        textTransform: 'uppercase', letterSpacing: 0.8,
-      }}>
-        ESC or tap ✕ to close
-      </div>
     </div>
   )
 }
