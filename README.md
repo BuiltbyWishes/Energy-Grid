@@ -1,6 +1,6 @@
 # Energy Grid
 
-A live interactive visualization of the US power grid — real demand data, power plant locations, hyperscale data center draw, and energy flow. Built with React and the EIA Open Data API.
+A live interactive visualization of the US power grid — real demand data, power plant locations, hyperscale data center draw, and energy flow. Built with React, EIA Open Data API and OpenGridWorks API.
 
 **[Live Demo →](https://energy-grid-bay.vercel.app)**
 
