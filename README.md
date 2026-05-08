@@ -4,7 +4,8 @@ A live interactive visualization of the US power grid — real demand data, powe
 
 **[Live Demo →](https://energy-grid-bay.vercel.app)**
 
-![Energy Grid Screenshot](screenshot.png)
+![Energy Grid Screenshot](<img width="1568" height="736" alt="Thumbnail of Energy grid" src="https://github.com/user-attachments/assets/274d874a-527a-4a51-aa24-6f23d49f1e01" />
+)
 
 ## What it shows
 
