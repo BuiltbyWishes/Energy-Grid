@@ -1,4 +1,5 @@
 import { PLANT_COLORS } from '../data/plants'
+import CollapsibleSection from './CollapsibleSection'
 
 function ecoColor(score) {
   if (score >= 80) return 'var(--green)'
@@ -10,9 +11,9 @@ function ecoColor(score) {
 function ArcGauge({ score }) {
   const r = 20, cx = 26, cy = 26
   const pathLen = Math.PI * r
-  const filled = (score / 100) * pathLen
-  const d = `M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`
-  const color = ecoColor(score)
+  const filled  = (score / 100) * pathLen
+  const d       = `M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`
+  const color   = ecoColor(score)
   return (
     <svg width={52} height={30} style={{ overflow: 'visible', flexShrink: 0 }}>
       <path d={d} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={4} strokeLinecap="round" />
@@ -33,8 +34,7 @@ function ArcGauge({ score }) {
 export default function EcoPanel({ plants }) {
   const sorted = [...plants].sort((a, b) => b.eco_score - a.eco_score)
   return (
-    <section>
-      <div className="section-title">Plant Eco Scores</div>
+    <CollapsibleSection title="Plant Eco Scores" defaultOpen={false}>
       <div>
         {sorted.map(p => (
           <div
@@ -79,6 +79,6 @@ export default function EcoPanel({ plants }) {
           </div>
         ))}
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }

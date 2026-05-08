@@ -1,4 +1,5 @@
 import { REGIONS } from '../api/eia'
+import CollapsibleSection from './CollapsibleSection'
 
 function fmtGW(mw) {
   if (!mw) return '—'
@@ -6,19 +7,18 @@ function fmtGW(mw) {
 }
 
 export default function RegionPanel({ regionData }) {
-  const demands = REGIONS.map(r => regionData[r.id]?.demand ?? 0)
+  const demands   = REGIONS.map(r => regionData[r.id]?.demand ?? 0)
   const maxDemand = Math.max(...demands, 1)
 
   return (
-    <section>
-      <div className="section-title">Grid Regions</div>
+    <CollapsibleSection title="Grid Regions" defaultOpen={true}>
       <div>
         {REGIONS.map(r => {
-          const data = regionData[r.id] ?? {}
+          const data   = regionData[r.id] ?? {}
           const demand = data.demand ?? 0
-          const netGen = data.netGen ?? 0
-          const pct = (demand / maxDemand) * 100
-          const ratio = demand > 0 ? netGen / demand : 0
+          const netGen = data.netGen  ?? 0
+          const pct    = (demand / maxDemand) * 100
+          const ratio  = demand > 0 ? netGen / demand : 0
           const statusColor = ratio >= 0.95 ? 'var(--green)' : ratio >= 0.80 ? 'var(--yellow)' : 'var(--red)'
 
           return (
@@ -56,6 +56,6 @@ export default function RegionPanel({ regionData }) {
           )
         })}
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchRegionDemand, fetchFuelMix, fetchPlantGeneration } from './api/eia'
+import { fetchAllIsoData } from './api/gridstatus'
 import { PLANTS } from './data/plants'
 import { DATA_CENTERS } from './data/dataCenters'
 import GridMap from './components/GridMap'
@@ -7,6 +8,7 @@ import FuelMixPanel from './components/FuelMixPanel'
 import DcRankings from './components/DcRankings'
 import RegionPanel from './components/RegionPanel'
 import EcoPanel from './components/EcoPanel'
+import IsoFuelPanel from './components/IsoFuelPanel'
 import DetailPanel from './components/DetailPanel'
 import { PlantDetailPanel, DcDetailPanel } from './components/SelectionPanel'
 import './index.css'
@@ -31,6 +33,7 @@ export default function App() {
   const [plants, setPlants]         = useState(PLANTS);
   const [fuelMix, setFuelMix]       = useState([]);
   const [regionData, setRegionData] = useState({});
+  const [isoData, setIsoData]       = useState({});
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
   const [selected, setSelected]     = useState(null); // { type: 'region'|'plant'|'dc', data }
@@ -65,6 +68,14 @@ export default function App() {
     const t = setInterval(load, REFRESH_MS);
     return () => clearInterval(t);
   }, [load]);
+
+  // GridStatus: fetch once on mount, serve from localStorage cache for 1 hour.
+  // NOT tied to the 5-min EIA refresh — free tier is 250 req/month (14 per fetch).
+  useEffect(() => {
+    fetchAllIsoData()
+      .then(data => setIsoData(data))
+      .catch(() => { /* silent — isoData stays as-is */ });
+  }, []);
 
   // Dismiss on Escape
   useEffect(() => {
@@ -183,6 +194,7 @@ export default function App() {
           <GridMap
             plants={plants}
             regionData={regionData}
+            isoData={isoData}
             selected={selected}
             onRegionClick={handleRegionClick}
             onPlantClick={handlePlantClick}
@@ -213,6 +225,7 @@ export default function App() {
               <RegionPanel regionData={regionData} />
               <DcRankings />
               <EcoPanel plants={plants} />
+              <IsoFuelPanel isoData={isoData} />
             </>
           )}
         </aside>

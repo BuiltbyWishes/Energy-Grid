@@ -72,7 +72,7 @@ export const DATA_CENTERS = [
     name: 'Google Lenoir',
     operator: 'Google',
     city: 'Lenoir', state: 'NC',
-    lat: 35.9068, lng: -81.5401,
+    lat: 36.25, lng: -81.55,
     energy_consumption_mw: 145,
     peak_consumption_mw: 170,
     data_output_tbps: 4.9,
@@ -124,7 +124,7 @@ export const DATA_CENTERS = [
     name: 'Microsoft Azure Chicago',
     operator: 'Microsoft',
     city: 'Chicago', state: 'IL',
-    lat: 41.9742, lng: -87.8073,
+    lat: 42.20, lng: -88.15,
     energy_consumption_mw: 190,
     peak_consumption_mw: 225,
     data_output_tbps: 6.5,
@@ -137,7 +137,7 @@ export const DATA_CENTERS = [
     name: 'Meta Forest City',
     operator: 'Meta',
     city: 'Forest City', state: 'NC',
-    lat: 35.6301, lng: -81.8618,
+    lat: 35.20, lng: -82.25,
     energy_consumption_mw: 180,
     peak_consumption_mw: 220,
     data_output_tbps: 6.2,
@@ -176,7 +176,7 @@ export const DATA_CENTERS = [
     name: 'Apple Maiden',
     operator: 'Apple',
     city: 'Maiden', state: 'NC',
-    lat: 35.5607, lng: -81.2204,
+    lat: 35.20, lng: -80.75,
     energy_consumption_mw: 140,
     peak_consumption_mw: 165,
     data_output_tbps: 4.8,
@@ -228,7 +228,7 @@ export const DATA_CENTERS = [
     name: 'CyrusOne Chicago',
     operator: 'CyrusOne',
     city: 'Chicago', state: 'IL',
-    lat: 41.8827, lng: -87.6233,
+    lat: 41.60, lng: -87.30,
     energy_consumption_mw: 85,
     peak_consumption_mw: 100,
     data_output_tbps: 2.8,
@@ -264,10 +264,10 @@ export const DATA_CENTERS = [
   },
 ];
 
-// MW draw → flow line color
+// MW draw → flow line color (vivid)
 export function flowColor(mw) {
-  if (mw > 200) return '#FF3B30';
-  if (mw > 100) return '#FF9500';
-  if (mw > 50)  return '#FFCC00';
-  return '#34C759';
+  if (mw > 200) return '#F55858';  // vivid red
+  if (mw > 100) return '#F89040';  // vivid orange
+  if (mw > 50)  return '#F5D830';  // vivid yellow
+  return '#28E898';                 // vivid emerald
 }

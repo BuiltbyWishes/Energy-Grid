@@ -1,7 +1,8 @@
 import { DATA_CENTERS } from '../data/dataCenters'
+import CollapsibleSection from './CollapsibleSection'
 
 const sorted = [...DATA_CENTERS].sort((a, b) => b.energy_consumption_mw - a.energy_consumption_mw)
-const maxMw = sorted[0].energy_consumption_mw
+const maxMw  = sorted[0].energy_consumption_mw
 
 function loadColor(mw) {
   if (mw > 250) return 'var(--red)'
@@ -12,12 +13,11 @@ function loadColor(mw) {
 
 export default function DcRankings() {
   return (
-    <section>
-      <div className="section-title">DC Power Draw</div>
+    <CollapsibleSection title="DC Power Draw" defaultOpen={true}>
       <div>
         {sorted.map((dc, i) => {
           const color = loadColor(dc.energy_consumption_mw)
-          const pct = (dc.energy_consumption_mw / maxMw) * 100
+          const pct   = (dc.energy_consumption_mw / maxMw) * 100
           return (
             <div
               key={dc.id}
@@ -55,6 +55,6 @@ export default function DcRankings() {
           )
         })}
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }

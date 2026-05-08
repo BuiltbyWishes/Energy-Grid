@@ -1,13 +1,16 @@
+import CollapsibleSection from './CollapsibleSection'
+
+// Vivid fuel palette — matches plant types
 const FUEL_COLORS = {
-  NG:  '#F97316',
-  COL: '#6B7280',
-  NUC: '#8B5CF6',
-  WAT: '#3B82F6',
-  WND: '#0EEADC',
-  SUN: '#F59E0B',
-  OIL: '#EF4444',
-  GEO: '#EC4899',
-  OTH: '#475569',
+  NG:  '#F89040',  // vivid amber-orange
+  COL: '#8B9CB8',  // blue-slate (intentionally muted)
+  NUC: '#CC88FF',  // vivid violet
+  WAT: '#58A0F8',  // vivid steel blue
+  WND: '#40D8F0',  // vivid blue-teal
+  SUN: '#F8C030',  // vivid warm gold
+  OIL: '#F55858',  // vivid red
+  GEO: '#E87070',  // vivid brick
+  OTH: '#6B7A94',  // muted slate
 }
 
 const FUEL_ORDER = ['NG','NUC','WAT','WND','SUN','COL','GEO','OIL','OTH']
@@ -23,9 +26,7 @@ export default function FuelMixPanel({ fuelMix }) {
   const total = sorted.reduce((s, f) => s + f.value, 0)
 
   return (
-    <section>
-      <div className="section-title">National Fuel Mix</div>
-
+    <CollapsibleSection title="National Fuel Mix" defaultOpen={true}>
       {/* Stacked bar */}
       <div style={{ padding: '12px 16px 8px' }}>
         <div style={{ height: 6, borderRadius: 3, overflow: 'hidden', display: 'flex' }}>
@@ -34,7 +35,7 @@ export default function FuelMixPanel({ fuelMix }) {
               key={f.fueltype}
               style={{
                 width: `${(f.value / total) * 100}%`,
-                background: FUEL_COLORS[f.fueltype] ?? '#475569',
+                background: FUEL_COLORS[f.fueltype] ?? '#6B7A94',
                 transition: 'width 0.4s',
               }}
             />
@@ -45,9 +46,9 @@ export default function FuelMixPanel({ fuelMix }) {
       {/* Legend rows */}
       <div style={{ padding: '0 16px 12px', display: 'flex', flexDirection: 'column', gap: 5 }}>
         {sorted.map(f => {
-          const pct = ((f.value / total) * 100).toFixed(1)
-          const color = FUEL_COLORS[f.fueltype] ?? '#475569'
-          const gw = (f.value / 1000).toFixed(1)
+          const pct   = ((f.value / total) * 100).toFixed(1)
+          const color = FUEL_COLORS[f.fueltype] ?? '#6B7A94'
+          const gw    = (f.value / 1000).toFixed(1)
           return (
             <div key={f.fueltype} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ width: 8, height: 8, borderRadius: 2, background: color, flexShrink: 0 }} />
@@ -62,6 +63,6 @@ export default function FuelMixPanel({ fuelMix }) {
           )
         })}
       </div>
-    </section>
+    </CollapsibleSection>
   )
 }

@@ -77,7 +77,7 @@ export const PLANTS = [
     eia_id: 278,
     name: 'Calvert Cliffs Nuclear',
     type: 'nuclear',
-    lat: 38.4354, lng: -76.4413,
+    lat: 38.80, lng: -76.90,
     state: 'MD', region: 'Northeast',
     capacity_mw: 1790,
     current_output_mw: null,
@@ -203,7 +203,7 @@ export const PLANTS = [
     eia_id: 55526,
     name: 'Dominion Cove Point',
     type: 'natural_gas',
-    lat: 38.3919, lng: -76.3886,
+    lat: 37.95, lng: -75.90,
     state: 'MD', region: 'Northeast',
     capacity_mw: 900,
     current_output_mw: null,
@@ -214,15 +214,15 @@ export const PLANTS = [
   },
 ];
 
-// Color per plant type
+// Color per plant type — vivid, cohesive hue family
 export const PLANT_COLORS = {
-  hydro:       '#3B82F6',  // electric blue
-  solar:       '#F59E0B',  // amber
-  wind:        '#0EEADC',  // teal
-  nuclear:     '#8B5CF6',  // violet
-  geothermal:  '#EF4444',  // red
-  natural_gas: '#F97316',  // orange
-  coal:        '#6B7280',  // gray
+  hydro:       '#58A0F8',  // vivid steel blue
+  solar:       '#F8C030',  // vivid warm gold
+  wind:        '#40D8F0',  // vivid blue-teal
+  nuclear:     '#CC88FF',  // vivid soft violet
+  geothermal:  '#E87070',  // vivid brick
+  natural_gas: '#F89040',  // vivid amber-orange
+  coal:        '#8B9CB8',  // blue-slate neutral (intentionally muted)
 };
 
 export const PLANT_ICONS = {

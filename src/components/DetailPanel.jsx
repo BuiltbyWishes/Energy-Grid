@@ -20,7 +20,7 @@ function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
   return (
     <div style={{
-      background: 'rgba(8,18,45,0.95)', border: '1px solid rgba(59,130,246,0.25)',
+      background: 'rgba(18,18,22,0.97)', border: '1px solid rgba(75,139,222,0.22)',
       borderRadius: 4, padding: '6px 10px', fontFamily: 'var(--font-mono)', fontSize: 10,
     }}>
       <div style={{ color: 'var(--text-dim)', marginBottom: 4 }}>{fmtHour(label)}</div>
@@ -67,7 +67,7 @@ export default function DetailPanel({ region, regionData, onClose }) {
           }}>
             Region Detail
           </div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--teal)', marginTop: 3 }}>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--teal)', marginTop: 3, letterSpacing: 0.5 }}>
             {region.name}
           </div>
         </div>
@@ -126,12 +126,12 @@ export default function DetailPanel({ region, regionData, onClose }) {
             <AreaChart data={series} margin={{ top: 4, right: 16, bottom: 0, left: -8 }}>
               <defs>
                 <linearGradient id="grad-demand" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#0EEADC" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#0EEADC" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#58A0F8" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#58A0F8" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="grad-netgen" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="#3B82F6" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                  <stop offset="5%"  stopColor="#70B0FF" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#70B0FF" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
@@ -150,13 +150,13 @@ export default function DetailPanel({ region, regionData, onClose }) {
               <Tooltip content={<ChartTooltip />} />
               <Area
                 type="monotone" dataKey="demand" name="Demand"
-                stroke="#0EEADC" strokeWidth={1.5}
-                fill="url(#grad-demand)" dot={false} activeDot={{ r: 3, fill: '#0EEADC' }}
+                stroke="#58A0F8" strokeWidth={1.5}
+                fill="url(#grad-demand)" dot={false} activeDot={{ r: 3, fill: '#58A0F8' }}
               />
               <Area
                 type="monotone" dataKey="netGen" name="Net Gen"
-                stroke="#3B82F6" strokeWidth={1.5}
-                fill="url(#grad-netgen)" dot={false} activeDot={{ r: 3, fill: '#3B82F6' }}
+                stroke="#70B0FF" strokeWidth={1.5}
+                fill="url(#grad-netgen)" dot={false} activeDot={{ r: 3, fill: '#70B0FF' }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -168,7 +168,7 @@ export default function DetailPanel({ region, regionData, onClose }) {
         display: 'flex', gap: 16, padding: '0 16px 14px',
         fontFamily: 'var(--font-mono)', fontSize: 9, flexShrink: 0,
       }}>
-        {[['#0EEADC', 'DEMAND'], ['#3B82F6', 'NET GEN']].map(([color, label]) => (
+        {[['#58A0F8', 'DEMAND'], ['#70B0FF', 'NET GEN']].map(([color, label]) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 16, height: 2, background: color, borderRadius: 1 }} />
             <span style={{ color: 'var(--text-muted)' }}>{label}</span>

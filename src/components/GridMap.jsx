@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import {
-  ComposableMap, Geographies, Geography, Marker, Line,
+  ComposableMap, Geographies, Geography, Marker, Line, ZoomableGroup,
 } from 'react-simple-maps'
 import { PLANT_COLORS } from '../data/plants'
 import { DATA_CENTERS, flowColor } from '../data/dataCenters'
@@ -18,6 +18,150 @@ const FILTERS = [
   { key: 'natural_gas', label: 'GAS' },
   { key: 'coal',        label: 'COAL' },
 ]
+
+// ISO zone overlay — blue tint family, resaturated (matches IsoFuelPanel)
+const ISO_COLORS = {
+  caiso: '#58A0F8',  // vivid steel blue
+  ercot: '#66B8F0',  // lighter vivid blue
+  pjm:   '#72CCE0',  // blue-teal
+  miso:  '#58B8CC',  // teal variant
+  spp:   '#4888D8',  // deeper blue
+  nyiso: '#8090F0',  // blue-violet
+  isone: '#9878E0',  // soft violet
+}
+
+const ISO_LABELS = {
+  caiso: 'CAISO', ercot: 'ERCOT', pjm: 'PJM',
+  miso:  'MISO',  spp:   'SPP',  nyiso: 'NYISO', isone: 'ISO-NE',
+}
+
+const ISO_FUEL_COLORS = {
+  solar:   '#F8C030', wind:    '#40D8F0', nuclear: '#CC88FF',
+  hydro:   '#58A0F8', gas:     '#F89040', coal:    '#8B9CB8',
+  battery: '#28E898', other:   '#6B7A94',
+}
+
+function IsoPopup({ iso, isoData, onClose }) {
+  const label   = ISO_LABELS[iso] ?? iso.toUpperCase()
+  const color   = ISO_COLORS[iso] ?? 'var(--teal)'
+  const data    = isoData[iso]
+  const fuelMix = data?.fuelMix ?? []
+  const total   = fuelMix.reduce((s, f) => s + f.mw, 0)
+  const loadMw  = data?.load_mw
+
+  return (
+    <div style={{
+      background: 'rgba(12,12,14,0.97)',
+      border: `1px solid ${color}55`,
+      borderRadius: 6,
+      padding: '10px 12px',
+      fontFamily: 'var(--font-mono)',
+      minWidth: 158,
+      boxShadow: `0 4px 24px rgba(0,0,0,0.65), 0 0 18px ${color}22`,
+    }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ width: 8, height: 8, borderRadius: 1, background: color, flexShrink: 0 }} />
+          <span style={{ fontSize: 11, color, fontWeight: 600, letterSpacing: 0.5 }}>{label}</span>
+        </div>
+        <button
+          onClick={e => { e.stopPropagation(); onClose() }}
+          style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', fontSize: 12, lineHeight: 1, padding: '0 2px' }}
+        >✕</button>
+      </div>
+
+      {/* Load */}
+      {loadMw != null && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
+          <span style={{ fontSize: 9, color: 'var(--text-dim)' }}>LOAD</span>
+          <span style={{ fontSize: 9, color }}>{(loadMw / 1000).toFixed(1)} GW</span>
+        </div>
+      )}
+
+      {/* Fuel bar + rows */}
+      {fuelMix.length > 0 ? (
+        <>
+          <div style={{ display: 'flex', height: 4, borderRadius: 2, overflow: 'hidden', marginBottom: 6 }}>
+            {fuelMix.map(f => (
+              <div key={f.fuel} style={{
+                width: `${(f.mw / total) * 100}%`,
+                background: ISO_FUEL_COLORS[f.fuel] ?? '#6B7A94',
+              }} />
+            ))}
+          </div>
+          {fuelMix.slice(0, 4).map(f => (
+            <div key={f.fuel} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, marginBottom: 3 }}>
+              <span style={{ color: ISO_FUEL_COLORS[f.fuel] ?? 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                {f.fuel}
+              </span>
+              <span style={{ color: 'var(--text-dim)' }}>
+                {total > 0 ? `${Math.round((f.mw / total) * 100)}%` : '—'}
+              </span>
+            </div>
+          ))}
+        </>
+      ) : (
+        <div style={{ fontSize: 9, color: 'var(--text-dim)', lineHeight: 1.65, marginBottom: 4 }}>
+          {!import.meta.env.VITE_GRIDSTATUS_API_KEY
+            ? 'Live fuel data not connected'
+            : 'Fetching fuel data…'
+          }
+        </div>
+      )}
+
+      <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.2)', marginTop: 8, borderTop: '1px solid rgba(75,139,222,0.1)', paddingTop: 5 }}>
+        Click zone again · ESC to close
+      </div>
+    </div>
+  )
+}
+
+// State FIPS → ISO slug (numeric FIPS as used in us-atlas states-10m.json)
+// States that span multiple ISOs are assigned to the dominant operator.
+// Western states not in any of the 7 ISOs are omitted (render with default dark fill).
+const ISO_STATE_FIPS = new Map([
+  // CAISO
+  [6,  'caiso'],  // California
+  // ERCOT
+  [48, 'ercot'],  // Texas (ERCOT covers ~90% of TX)
+  // PJM
+  [10, 'pjm'],   // Delaware
+  [11, 'pjm'],   // DC
+  [24, 'pjm'],   // Maryland
+  [34, 'pjm'],   // New Jersey
+  [39, 'pjm'],   // Ohio
+  [42, 'pjm'],   // Pennsylvania
+  [51, 'pjm'],   // Virginia
+  [54, 'pjm'],   // West Virginia
+  [26, 'pjm'],   // Michigan (Lower Peninsula — PJM)
+  // MISO
+  [5,  'miso'],  // Arkansas
+  [17, 'miso'],  // Illinois (predominantly MISO)
+  [18, 'miso'],  // Indiana (predominantly MISO)
+  [19, 'miso'],  // Iowa
+  [21, 'miso'],  // Kentucky
+  [22, 'miso'],  // Louisiana
+  [27, 'miso'],  // Minnesota
+  [28, 'miso'],  // Mississippi
+  [29, 'miso'],  // Missouri
+  [38, 'miso'],  // North Dakota
+  [46, 'miso'],  // South Dakota (eastern portion in MISO)
+  [55, 'miso'],  // Wisconsin
+  // SPP
+  [20, 'spp'],   // Kansas
+  [31, 'spp'],   // Nebraska
+  [40, 'spp'],   // Oklahoma
+  // NYISO
+  [36, 'nyiso'], // New York
+  // ISO-NE
+  [9,  'isone'], // Connecticut
+  [23, 'isone'], // Maine
+  [25, 'isone'], // Massachusetts
+  [33, 'isone'], // New Hampshire
+  [44, 'isone'], // Rhode Island
+  [50, 'isone'], // Vermont
+])
 
 const DC_MAP = Object.fromEntries(DATA_CENTERS.map(dc => [dc.id, dc]))
 
@@ -45,13 +189,13 @@ function buildFlowLines(plants) {
 
 function regionStatusColor(demand, netGen) {
   const ratio = demand > 0 ? netGen / demand : 0
-  if (demand === 0) return '#3B82F6'
-  return ratio >= 0.95 ? '#34C759' : ratio >= 0.80 ? '#FFCC00' : '#FF3B30'
+  if (demand === 0) return '#58A0F8'   // vivid steel blue when no data
+  return ratio >= 0.95 ? '#28E898' : ratio >= 0.80 ? '#F5D830' : '#F55858'
 }
 
 function PlantTooltip({ data }) {
   const color    = PLANT_COLORS[data.type]
-  const ecoColor = data.eco_score >= 80 ? '#34C759' : data.eco_score >= 50 ? '#FFCC00' : '#FF3B30'
+  const ecoColor = data.eco_score >= 80 ? '#28E898' : data.eco_score >= 50 ? '#F5D830' : '#F55858'
   return (
     <>
       <div className="tt-name">{data.name}</div>
@@ -100,7 +244,7 @@ function DcTooltip({ data }) {
       </div>
       <div className="tt-row">
         <span>YoY growth</span>
-        <span style={{ color: '#F59E0B' }}>+{data.yoy_growth_percent}%</span>
+        <span style={{ color: '#F8C030' }}>+{data.yoy_growth_percent}%</span>
       </div>
     </>
   )
@@ -123,12 +267,22 @@ function FlowTooltip({ data }) {
 }
 
 export default function GridMap({
-  plants, regionData = {}, selected,
+  plants, regionData = {}, isoData = {}, selected,
   onRegionClick, onPlantClick, onDcClick,
 }) {
-  const [filter, setFilter]       = useState('all')
-  const [tooltip, setTooltip]     = useState(null)
-  const [flowTip, setFlowTip]     = useState(null)
+  const [filter, setFilter]         = useState('all')
+  const [showIsoZones, setShowIsoZones] = useState(true)
+  const [tooltip, setTooltip]       = useState(null)
+  const [flowTip, setFlowTip]       = useState(null)
+  const [isoPopup, setIsoPopup]     = useState(null) // { iso, x, y }
+  const [position, setPosition]     = useState({ coordinates: [0, 0], zoom: 1 })
+
+  // Close ISO popup on Escape
+  useEffect(() => {
+    const handler = e => { if (e.key === 'Escape') setIsoPopup(null) }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const visiblePlants = filter === 'all' ? plants : plants.filter(p => p.type === filter)
   const visibleIds    = useMemo(() => new Set(visiblePlants.map(p => p.id)), [visiblePlants])
@@ -203,10 +357,18 @@ export default function GridMap({
             </feMerge>
           </filter>
           <radialGradient id="map-vignette" cx="50%" cy="50%" r="70%">
-            <stop offset="0%"   stopColor="#020817" stopOpacity="0" />
-            <stop offset="100%" stopColor="#020817" stopOpacity="0.6" />
+            <stop offset="0%"   stopColor="#0C0C0E" stopOpacity="0" />
+            <stop offset="100%" stopColor="#0C0C0E" stopOpacity="0.6" />
           </radialGradient>
         </defs>
+
+        <ZoomableGroup
+          zoom={position.zoom}
+          center={position.coordinates}
+          onMoveEnd={setPosition}
+          minZoom={1}
+          maxZoom={10}
+        >
 
         {/* States */}
         <Geographies geography={GEO_URL}>
@@ -215,12 +377,12 @@ export default function GridMap({
               <Geography
                 key={geo.rsmKey}
                 geography={geo}
-                fill="rgba(5, 15, 40, 0.9)"
-                stroke="#1E40AF"
+                fill="rgba(20, 20, 22, 0.95)"
+                stroke="#303036"
                 strokeWidth={0.7}
                 style={{
                   default: { outline: 'none', filter: 'url(#state-glow)' },
-                  hover:   { fill: 'rgba(59,130,246,0.09)', outline: 'none', filter: 'url(#state-glow)' },
+                  hover:   { fill: 'rgba(75,139,222,0.07)', outline: 'none', filter: 'url(#state-glow)' },
                   pressed: { outline: 'none' },
                 }}
               />
@@ -228,8 +390,39 @@ export default function GridMap({
           }
         </Geographies>
 
-        {/* Vignette */}
-        <rect x="0" y="0" width="960" height="600" fill="url(#map-vignette)" pointerEvents="none" />
+        {/* ── ISO zone overlay ──────────────────────────────── */}
+        {showIsoZones && (
+          <Geographies geography={GEO_URL}>
+            {({ geographies }) =>
+              geographies.map(geo => {
+                const fips = parseInt(geo.id, 10)
+                const iso  = ISO_STATE_FIPS.get(fips)
+                if (!iso) return null
+                const color      = ISO_COLORS[iso]
+                const hasData    = !!isoData[iso]
+                const isSelected = isoPopup?.iso === iso
+                return (
+                  <Geography
+                    key={`iso-${geo.rsmKey}`}
+                    geography={geo}
+                    fill={isSelected ? `${color}32` : `${color}15`}
+                    stroke={color}
+                    strokeWidth={isSelected ? 1.8 : 1.0}
+                    strokeOpacity={isSelected ? 0.8 : hasData ? 0.55 : 0.22}
+                    onClick={e => {
+                      setIsoPopup(prev => prev?.iso === iso ? null : { iso, x: e.clientX, y: e.clientY })
+                    }}
+                    style={{
+                      default: { outline: 'none', cursor: 'pointer' },
+                      hover:   { fill: `${color}28`, outline: 'none', cursor: 'pointer' },
+                      pressed: { outline: 'none' },
+                    }}
+                  />
+                )
+              })
+            }
+          </Geographies>
+        )}
 
         {/* ── Visible flow lines ─────────────────────────────── */}
         {visibleFlows.map(line => {
@@ -261,39 +454,7 @@ export default function GridMap({
           />
         ))}
 
-        {/* ── Data centers ──────────────────────────────────── */}
-        {DATA_CENTERS.map(dc => {
-          const r      = 3 + (dc.energy_consumption_mw / 350) * 5.5
-          const color  = flowColor(dc.energy_consumption_mw)
-          const dimmed = hasNetworkSel && !highlightedDcIds.has(dc.id)
-          const isHl   = hasNetworkSel && highlightedDcIds.has(dc.id)
-          return (
-            <Marker
-              key={dc.id}
-              coordinates={[dc.lng, dc.lat]}
-              onMouseEnter={e => showTip(e, 'dc', dc)}
-              onMouseLeave={hideTip}
-              onClick={() => { hideTip(); onDcClick?.(dc) }}
-            >
-              <g opacity={dimmed ? 0.12 : 1} style={{ transition: 'opacity 0.25s' }}>
-                <circle r={r + 6} fill={`${color}${isHl ? '20' : '12'}`} />
-                <circle
-                  r={isHl ? r + 2 : r}
-                  fill={`${color}30`}
-                  stroke={color}
-                  strokeWidth={isHl ? 2 : 1.1}
-                  filter="url(#dot-glow)"
-                  style={{ cursor: 'pointer' }}
-                />
-                <circle r={1.8} fill={color} />
-                {/* large transparent touch target */}
-                <circle r={22} fill="transparent" style={{ cursor: 'pointer' }} />
-              </g>
-            </Marker>
-          )
-        })}
-
-        {/* ── Power plants ──────────────────────────────────── */}
+        {/* ── Power plants (rendered first = behind DCs in SVG stack) ── */}
         {visiblePlants.map(plant => {
           const color  = PLANT_COLORS[plant.type]
           const r      = 5 + (plant.capacity_mw / 6809) * 7
@@ -303,11 +464,10 @@ export default function GridMap({
             <Marker
               key={plant.id}
               coordinates={[plant.lng, plant.lat]}
-              onMouseEnter={e => showTip(e, 'plant', plant)}
-              onMouseLeave={hideTip}
               onClick={() => { hideTip(); onPlantClick?.(plant) }}
             >
               <g opacity={dimmed ? 0.12 : 1} style={{ transition: 'opacity 0.25s' }}>
+                {/* Outer ring */}
                 <circle
                   r={r + 7}
                   fill="none"
@@ -316,17 +476,60 @@ export default function GridMap({
                   strokeOpacity={isHl ? 0.6 : 0.3}
                   className="plant-ring"
                 />
+                {/* Visual dot — hover fires only when cursor is over this */}
                 <circle
                   r={isHl ? r + 2 : r}
                   fill={`${color}40`}
                   stroke={color}
                   strokeWidth={isHl ? 2 : 1.3}
                   filter="url(#dot-glow)"
+                  onMouseEnter={e => showTip(e, 'plant', plant)}
+                  onMouseLeave={hideTip}
                   style={{ cursor: 'pointer' }}
                 />
-                <circle r={2.5} fill={color} />
-                {/* large transparent touch target */}
-                <circle r={24} fill="transparent" style={{ cursor: 'pointer' }} />
+                <circle
+                  r={2.5}
+                  fill={color}
+                  onMouseEnter={e => showTip(e, 'plant', plant)}
+                  onMouseLeave={hideTip}
+                />
+              </g>
+            </Marker>
+          )
+        })}
+
+        {/* ── Data centers (rendered after plants = on top in SVG stack) ── */}
+        {DATA_CENTERS.map(dc => {
+          const r      = 3 + (dc.energy_consumption_mw / 350) * 5.5
+          const color  = flowColor(dc.energy_consumption_mw)
+          const dimmed = hasNetworkSel && !highlightedDcIds.has(dc.id)
+          const isHl   = hasNetworkSel && highlightedDcIds.has(dc.id)
+          return (
+            <Marker
+              key={dc.id}
+              coordinates={[dc.lng, dc.lat]}
+              onClick={() => { hideTip(); onDcClick?.(dc) }}
+            >
+              <g opacity={dimmed ? 0.12 : 1} style={{ transition: 'opacity 0.25s' }}>
+                {/* Glow halo */}
+                <circle r={r + 6} fill={`${color}${isHl ? '20' : '12'}`} />
+                {/* Visual dot */}
+                <circle
+                  r={isHl ? r + 2 : r}
+                  fill={`${color}30`}
+                  stroke={color}
+                  strokeWidth={isHl ? 2 : 1.1}
+                  filter="url(#dot-glow)"
+                  onMouseEnter={e => showTip(e, 'dc', dc)}
+                  onMouseLeave={hideTip}
+                  style={{ cursor: 'pointer' }}
+                />
+                <circle
+                  r={1.8}
+                  fill={color}
+                  onMouseEnter={e => showTip(e, 'dc', dc)}
+                  onMouseLeave={hideTip}
+                />
               </g>
             </Marker>
           )
@@ -347,8 +550,8 @@ export default function GridMap({
               onClick={() => onRegionClick?.(r)}
               style={{ cursor: 'pointer' }}
             >
-              {/* large transparent touch target */}
-              <circle r={sz + 20} fill="transparent" style={{ cursor: 'pointer' }} />
+              {/* transparent touch target — kept small so nearby plant/DC markers stay clickable */}
+              <circle r={sz + 5} fill="transparent" style={{ cursor: 'pointer' }} />
               {/* Outer halo */}
               <circle
                 r={sz + 10}
@@ -394,7 +597,61 @@ export default function GridMap({
             </Marker>
           )
         })}
+
+        </ZoomableGroup>
+
+        {/* Vignette — outside ZoomableGroup so it stays fixed on screen */}
+        <rect x="0" y="0" width="960" height="600" fill="url(#map-vignette)" pointerEvents="none" />
+
       </ComposableMap>
+
+      {/* Zoom controls */}
+      <div style={{
+        position: 'absolute', bottom: 52, left: 12,
+        display: 'flex', flexDirection: 'column', gap: 3, zIndex: 10,
+      }}>
+        {[
+          { label: '+', action: () => setPosition(p => ({ ...p, zoom: Math.min(p.zoom * 1.5, 10) })) },
+          { label: '−', action: () => setPosition(p => ({ ...p, zoom: Math.max(p.zoom / 1.5, 1) })) },
+        ].map(({ label, action }) => (
+          <button key={label} onClick={action} style={{
+            width: 28, height: 28,
+            background: 'rgba(12,12,14,0.85)',
+            border: '1px solid var(--border)',
+            borderRadius: 4,
+            color: 'var(--text)',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 16, lineHeight: 1,
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backdropFilter: 'blur(4px)',
+            transition: 'border-color 0.15s',
+          }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--teal)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+          >{label}</button>
+        ))}
+        {position.zoom > 1 && (
+          <button
+            onClick={() => setPosition({ coordinates: [0, 0], zoom: 1 })}
+            title="Reset view"
+            style={{
+              width: 28, height: 28,
+              background: 'rgba(12,12,14,0.85)',
+              border: '1px solid var(--border)',
+              borderRadius: 4,
+              color: 'var(--text-dim)',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 11, lineHeight: 1,
+              cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              backdropFilter: 'blur(4px)',
+            }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--teal)'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+          >↺</button>
+        )}
+      </div>
 
       {/* Filter bar */}
       <div className="filter-bar">
@@ -407,6 +664,24 @@ export default function GridMap({
             {f.label}
           </button>
         ))}
+
+        {/* Divider */}
+        <span style={{
+          alignSelf: 'center',
+          width: 1, height: 16,
+          background: 'var(--border)',
+          flexShrink: 0,
+          margin: '0 2px',
+        }} />
+
+        {/* ISO Zones toggle */}
+        <button
+          className={`filter-btn${showIsoZones ? ' active' : ''}`}
+          onClick={() => setShowIsoZones(v => !v)}
+          title="Toggle ISO/RTO zone overlay"
+        >
+          ISO ZONES
+        </button>
       </div>
 
       {/* Marker tooltip */}
@@ -423,6 +698,19 @@ export default function GridMap({
       {flowTip && (
         <div className="map-tooltip" style={{ left: flowTip.x + 14, top: flowTip.y - 10 }}>
           <FlowTooltip data={flowTip.data} />
+        </div>
+      )}
+
+      {/* ISO zone popup */}
+      {isoPopup && (
+        <div style={{
+          position: 'fixed',
+          left: Math.min(isoPopup.x + 16, window.innerWidth - 210),
+          top:  Math.max(isoPopup.y - 20, 10),
+          zIndex: 500,
+          pointerEvents: 'auto',
+        }}>
+          <IsoPopup iso={isoPopup.iso} isoData={isoData} onClose={() => setIsoPopup(null)} />
         </div>
       )}
     </div>

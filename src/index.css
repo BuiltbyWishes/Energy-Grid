@@ -4,38 +4,38 @@
 /* ── Design tokens ────────────────────────────────────────────── */
 :root {
   /* Backgrounds */
-  --bg-base:    #020817;   /* deep space navy */
-  --bg-surface: rgba(10, 20, 50, 0.7);
-  --bg-card:    rgba(8, 18, 45, 0.85);
+  --bg-base:    #0C0C0E;              /* near black */
+  --bg-surface: rgba(22, 22, 26, 0.75);
+  --bg-card:    rgba(18, 18, 22, 0.92);
 
   /* Borders & glass */
-  --border:        rgba(59, 130, 246, 0.18);
-  --border-bright: rgba(14, 234, 220, 0.35);
+  --border:        rgba(75, 139, 222, 0.18);
+  --border-bright: rgba(75, 139, 222, 0.35);
 
   /* Text */
   --text:       #E2E8F0;
   --text-muted: #64748B;
   --text-dim:   #334155;
 
-  /* Accent trio */
-  --teal:   #0EEADC;
-  --blue:   #3B82F6;
-  --amber:  #F59E0B;
+  /* Accent trio — Steel Blue anchor + Warm Gold (resaturated) */
+  --teal:   #58A0F8;   /* vivid steel blue */
+  --blue:   #70B0FF;   /* bright blue */
+  --amber:  #F8C030;   /* vivid gold */
 
   /* Status */
-  --green:  #34C759;
-  --yellow: #FFCC00;
-  --orange: #FF9500;
-  --red:    #FF3B30;
+  --green:  #28E898;   /* vivid emerald */
+  --yellow: #F5D830;   /* bright yellow */
+  --orange: #F89040;   /* bright orange */
+  --red:    #F55858;   /* vivid red */
 
   /* Typography */
   --font-head: 'Sora', system-ui, sans-serif;
   --font-mono: 'DM Mono', 'Consolas', monospace;
 
   /* Glow */
-  --glow-teal:  0 0 20px rgba(14, 234, 220, 0.4);
-  --glow-blue:  0 0 20px rgba(59, 130, 246, 0.4);
-  --glow-amber: 0 0 20px rgba(245, 158, 11, 0.4);
+  --glow-teal:  0 0 20px rgba(88, 160, 248, 0.45);
+  --glow-blue:  0 0 20px rgba(112, 176, 255, 0.40);
+  --glow-amber: 0 0 20px rgba(248, 192, 48, 0.40);
 }
 
 /* ── Reset ────────────────────────────────────────────────────── */
@@ -173,6 +173,21 @@ html, body, #root {
   border-bottom: 1px solid var(--border);
 }
 
+/* ── Collapsible section header ───────────────────────────────── */
+.collapsible-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-family: var(--font-mono);
+  color: inherit;
+}
+.collapsible-header:hover { background: rgba(255,255,255,0.02); }
+
 /* ── Loading / error ──────────────────────────────────────────── */
 .fullscreen-state {
   position: fixed;
@@ -229,7 +244,7 @@ html, body, #root {
 
 .filter-btn:hover { color: var(--text); border-color: var(--border-bright); }
 .filter-btn.active {
-  background: rgba(14, 234, 220, 0.12);
+  background: rgba(88, 160, 248, 0.14);
   color: var(--teal);
   border-color: var(--teal);
   text-shadow: var(--glow-teal);
@@ -319,7 +334,7 @@ html, body, #root {
 .close-btn:hover {
   border-color: var(--border-bright);
   color: var(--text);
-  background: rgba(14, 234, 220, 0.06);
+  background: rgba(75, 139, 222, 0.06);
 }
 
 /* ── Flow line animation ───────────────────────────────────────── */
