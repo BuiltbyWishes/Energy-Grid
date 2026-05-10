@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import CollapsibleSection from './CollapsibleSection'
+import { getCacheResyncHours } from '../api/gridstatus'
 
 // Vivid fuel palette — matches FuelMixPanel and plant types
 const FUEL_COLORS = {
@@ -149,8 +150,9 @@ function IsoRow({ iso, data }) {
 }
 
 export default function IsoFuelPanel({ isoData = {} }) {
-  const hasData = Object.keys(isoData).length > 0
-  const hasKey  = !!import.meta.env.VITE_GRIDSTATUS_API_KEY
+  const hasData      = Object.keys(isoData).length > 0
+  const hasKey       = !!import.meta.env.VITE_GRIDSTATUS_API_KEY
+  const resyncHours  = getCacheResyncHours()  // null if no cache
 
   // Badge shown in section header
   const badge = (
@@ -161,7 +163,10 @@ export default function IsoFuelPanel({ isoData = {} }) {
       color:      hasData ? 'var(--green)' : 'var(--text-dim)',
       border:     `1px solid ${hasData ? 'rgba(62,207,142,0.3)' : 'rgba(100,116,139,0.2)'}`,
     }}>
-      {hasData ? 'GS LIVE' : 'EIA ONLY'}
+      {hasData
+        ? `GS LIVE · resync ${resyncHours ?? '—'}h`
+        : 'EIA ONLY'
+      }
     </span>
   )
 
@@ -174,7 +179,10 @@ export default function IsoFuelPanel({ isoData = {} }) {
           fontFamily: 'var(--font-mono)', fontSize: 9,
           color: 'var(--text-dim)', lineHeight: 1.7,
         }}>
-          Live fuel data not connected. Connect a GridStatus account to enable real-time per-ISO fuel mix.
+          {resyncHours != null
+            ? `Live data resync in ${resyncHours} hrs`
+            : 'Live fuel data not connected. Add VITE_GRIDSTATUS_API_KEY to enable real-time per-ISO fuel mix.'
+          }
         </div>
       )}
 

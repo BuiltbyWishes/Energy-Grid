@@ -152,6 +152,21 @@ function writeCache(data) {
   } catch { /* ignore quota errors */ }
 }
 
+/**
+ * Returns hours until the GridStatus cache expires, or null if no valid cache exists.
+ * Use this to show "Live data resync in X hrs" instead of a generic "not connected" message.
+ */
+export function getCacheResyncHours() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const { ts } = JSON.parse(raw);
+    const msLeft = CACHE_TTL_MS - (Date.now() - ts);
+    if (msLeft <= 0) return null;
+    return Math.ceil(msLeft / (60 * 60 * 1000)); // round up to next whole hour
+  } catch { return null; }
+}
+
 let _pendingFetch = null;
 
 /**
