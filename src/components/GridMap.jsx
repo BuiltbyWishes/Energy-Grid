@@ -5,7 +5,7 @@ import {
 import { PLANT_COLORS } from '../data/plants'
 import { DATA_CENTERS, flowColor } from '../data/dataCenters'
 import { REGIONS } from '../api/eia'
-import { getCacheResyncHours } from '../api/gridstatus'
+import { getCacheInfo } from '../api/gridstatus'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json'
 
@@ -49,7 +49,7 @@ function IsoPopup({ iso, isoData, onClose }) {
   const fuelMix     = data?.fuelMix ?? []
   const total       = fuelMix.reduce((s, f) => s + f.mw, 0)
   const loadMw      = data?.load_mw
-  const resyncHours = getCacheResyncHours()
+  const cacheInfo   = getCacheInfo()
 
   return (
     <div style={{
@@ -106,9 +106,16 @@ function IsoPopup({ iso, isoData, onClose }) {
       ) : (
         <div style={{ fontSize: 9, color: 'var(--text-dim)', lineHeight: 1.65, marginBottom: 4 }}>
           {!import.meta.env.VITE_GRIDSTATUS_API_KEY
-            ? (resyncHours != null ? `Live data resync in ${resyncHours} hrs` : 'Live fuel data not connected')
+            ? (cacheInfo ? `Cached · last synced ${cacheInfo.daysOld > 0 ? `${cacheInfo.daysOld}d` : `${cacheInfo.hoursOld}h`} ago` : 'Live fuel data not connected')
             : 'Fetching fuel data…'
           }
+        </div>
+      )}
+
+      {/* Stale cache notice under fuel rows */}
+      {fuelMix.length > 0 && cacheInfo?.isStale && (
+        <div style={{ fontSize: 8, color: 'rgba(232,168,56,0.55)', marginTop: 4 }}>
+          Cached · {cacheInfo.daysOld > 0 ? `${cacheInfo.daysOld}d` : `${cacheInfo.hoursOld}h`} ago · refresh pending
         </div>
       )}
 

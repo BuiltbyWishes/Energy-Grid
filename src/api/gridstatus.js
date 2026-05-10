@@ -136,14 +136,15 @@ function parseFuelMix(rows) {
 const CACHE_KEY    = 'gs_iso_cache';
 const CACHE_TTL_MS = 72 * 60 * 60 * 1000; // 72 hours (~3 days) — keeps usage ~10 fetches/month well under 250 limit
 
+// readCache always returns whatever is in localStorage (even if stale).
+// Callers check .isStale to decide whether to attempt a background refresh.
 function readCache() {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const { ts, data } = JSON.parse(raw);
-    if (Date.now() - ts < CACHE_TTL_MS) return data;
-  } catch { /* ignore parse errors */ }
-  return null;
+    return { data, ts, isStale: Date.now() - ts >= CACHE_TTL_MS };
+  } catch { return null; }
 }
 
 function writeCache(data) {
@@ -153,27 +154,42 @@ function writeCache(data) {
 }
 
 /**
- * Returns hours until the GridStatus cache expires, or null if no valid cache exists.
- * Use this to show "Live data resync in X hrs" instead of a generic "not connected" message.
+ * Returns cache metadata for UI display (age, staleness, resync countdown).
+ * null = no cache entry exists at all.
  */
-export function getCacheResyncHours() {
+export function getCacheInfo() {
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const { ts } = JSON.parse(raw);
-    const msLeft = CACHE_TTL_MS - (Date.now() - ts);
-    if (msLeft <= 0) return null;
-    return Math.ceil(msLeft / (60 * 60 * 1000)); // round up to next whole hour
+    const ageMs  = Date.now() - ts;
+    const msLeft = CACHE_TTL_MS - ageMs;
+    const isStale = msLeft <= 0;
+    return {
+      isStale,
+      hoursUntilResync: isStale ? null : Math.ceil(msLeft / 36e5),
+      hoursOld: Math.floor(ageMs / 36e5),
+      daysOld:  Math.floor(ageMs / 864e5),
+    };
   } catch { return null; }
+}
+
+// Legacy alias kept for any existing callers
+export function getCacheResyncHours() {
+  return getCacheInfo()?.hoursUntilResync ?? null;
 }
 
 let _pendingFetch = null;
 
 /**
- * Fetch load + fuel mix for all 7 ISOs in a single sequential loop.
- * One request at a time (load then fuel_mix per ISO) with a 1.1 s gap
- * to stay well under the GridStatus free-tier rate limit.
- * Returns cached data immediately if < 1 hour old (saves API quota).
+ * Fetch load + fuel mix for all 7 ISOs.
+ *
+ * Strategy — stale-while-revalidate:
+ *   • No cache      → fetch now, await result
+ *   • Fresh cache   → return immediately, no fetch
+ *   • Stale cache   → return stale data immediately (keeps UI populated),
+ *                     fire background refresh so next page load gets fresh data
+ *
  * Returns {} immediately if no API key is configured.
  * Concurrent callers all share the same in-flight promise.
  *
@@ -182,7 +198,19 @@ let _pendingFetch = null;
 export async function fetchAllIsoData() {
   if (!GS_KEY) return {};
   const cached = readCache();
-  if (cached) return cached;
+
+  if (cached && !cached.isStale) return cached.data;   // ① fresh — serve now
+
+  if (cached && cached.isStale) {
+    // ② stale — serve old data immediately so UI stays populated,
+    //    kick off a background refresh (don't await it)
+    if (!_pendingFetch) {
+      _pendingFetch = _fetchAllIsoDataImpl().finally(() => { _pendingFetch = null; });
+    }
+    return cached.data;
+  }
+
+  // ③ no cache at all — must wait for first fetch
   if (_pendingFetch) return _pendingFetch;
   _pendingFetch = _fetchAllIsoDataImpl().finally(() => { _pendingFetch = null; });
   return _pendingFetch;

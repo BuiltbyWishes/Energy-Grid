@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import CollapsibleSection from './CollapsibleSection'
-import { getCacheResyncHours } from '../api/gridstatus'
+import { getCacheInfo } from '../api/gridstatus'
 
 // Vivid fuel palette — matches FuelMixPanel and plant types
 const FUEL_COLORS = {
@@ -150,43 +150,54 @@ function IsoRow({ iso, data }) {
 }
 
 export default function IsoFuelPanel({ isoData = {} }) {
-  const hasData      = Object.keys(isoData).length > 0
-  const hasKey       = !!import.meta.env.VITE_GRIDSTATUS_API_KEY
-  const resyncHours  = getCacheResyncHours()  // null if no cache
+  const hasData   = Object.keys(isoData).length > 0
+  const hasKey    = !!import.meta.env.VITE_GRIDSTATUS_API_KEY
+  const cacheInfo = getCacheInfo()  // { isStale, hoursUntilResync, hoursOld, daysOld } | null
 
-  // Badge shown in section header
+  // Badge label + colour changes based on freshness
+  const badgeLabel = hasData
+    ? cacheInfo?.isStale
+      ? `GS CACHED · ${cacheInfo.daysOld > 0 ? `${cacheInfo.daysOld}d` : `${cacheInfo.hoursOld}h`} ago`
+      : `GS LIVE · resync ${cacheInfo?.hoursUntilResync ?? '—'}h`
+    : 'EIA ONLY'
+
+  const badgeColor = hasData
+    ? cacheInfo?.isStale ? '#E8A838' : 'var(--green)'   // gold = stale, green = live
+    : 'var(--text-dim)'
+
   const badge = (
     <span style={{
       fontFamily: 'var(--font-mono)', fontSize: 8, letterSpacing: 1,
       padding: '2px 7px', borderRadius: 999,
-      background: hasData ? 'rgba(62,207,142,0.12)' : 'rgba(100,116,139,0.15)',
-      color:      hasData ? 'var(--green)' : 'var(--text-dim)',
-      border:     `1px solid ${hasData ? 'rgba(62,207,142,0.3)' : 'rgba(100,116,139,0.2)'}`,
+      background: hasData ? `${badgeColor}18` : 'rgba(100,116,139,0.15)',
+      color:      badgeColor,
+      border:     `1px solid ${hasData ? `${badgeColor}44` : 'rgba(100,116,139,0.2)'}`,
     }}>
-      {hasData
-        ? `GS LIVE · resync ${resyncHours ?? '—'}h`
-        : 'EIA ONLY'
-      }
+      {badgeLabel}
     </span>
   )
 
+  // Human-readable sync status line shown below data rows
+  const syncNote = cacheInfo
+    ? cacheInfo.isStale
+      ? `Cached · last synced ${cacheInfo.daysOld > 0 ? `${cacheInfo.daysOld}d` : `${cacheInfo.hoursOld}h`} ago · refresh pending`
+      : `Live · resync in ${cacheInfo.hoursUntilResync}h`
+    : null
+
   return (
     <CollapsibleSection title="ISO Fuel Mix" defaultOpen={false} badge={badge}>
-      {/* No key configured */}
-      {!hasKey && (
+      {/* No key configured and no cache at all */}
+      {!hasKey && !cacheInfo && (
         <div style={{
           padding: '14px 16px',
           fontFamily: 'var(--font-mono)', fontSize: 9,
           color: 'var(--text-dim)', lineHeight: 1.7,
         }}>
-          {resyncHours != null
-            ? `Live data resync in ${resyncHours} hrs`
-            : 'Live fuel data not connected. Add VITE_GRIDSTATUS_API_KEY to enable real-time per-ISO fuel mix.'
-          }
+          Live fuel data not connected. Add VITE_GRIDSTATUS_API_KEY to enable real-time per-ISO fuel mix.
         </div>
       )}
 
-      {/* Key configured but no data yet */}
+      {/* Key configured but first fetch still in flight */}
       {hasKey && !hasData && (
         <div style={{ padding: '14px 16px', fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--text-dim)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -202,6 +213,19 @@ export default function IsoFuelPanel({ isoData = {} }) {
         if (!data) return null
         return <IsoRow key={iso} iso={iso} data={data} />
       })}
+
+      {/* Sync status footer */}
+      {syncNote && (
+        <div style={{
+          padding: '6px 16px 10px',
+          fontFamily: 'var(--font-mono)', fontSize: 8,
+          color: cacheInfo?.isStale ? 'rgba(232,168,56,0.6)' : 'rgba(255,255,255,0.18)',
+          borderTop: '1px solid rgba(255,255,255,0.05)',
+          marginTop: 4,
+        }}>
+          {syncNote}
+        </div>
+      )}
     </CollapsibleSection>
   )
 }
